@@ -1,1 +1,3 @@
-# NodeJS
+# NodeJS -- https://saritagomi.github.io/NodeJS/
+
+This project is a clean, structured, and optimized static web guide designed to simplify the overwhelming official Node.js documentation for developers with 5+ years of experience. It focuses on delivering high-value, concise content that covers all critical Node.js concepts—ranging from core internals like the event loop and non-blocking I/O to advanced topics such as streams, worker threads, performance optimization, security practices, and scalable architecture patterns. The goal is to provide a fast, practical revision resource that emphasizes real-world understanding and interview readiness, without unnecessary noise. The UI is built to be modern, minimal, and highly readable, ensuring a smooth learning experience across devices. This makes the project not only a powerful personal reference but also ideal for sharing on platforms like LinkedIn to showcase knowledge and help other developers level up.
