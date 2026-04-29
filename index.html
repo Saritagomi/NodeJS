@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Node.js Master Reference — Sarita Gomi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #080c14;
+  --bg2:       #0c1220;
+  --glass:     rgba(255,255,255,0.03);
+  --glass2:    rgba(255,255,255,0.06);
+  --border:    rgba(255,255,255,0.08);
+  --border2:   rgba(255,255,255,0.14);
+  --text:      #e2e8f8;
+  --sub:       #8896b3;
+  --muted:     #4a5568;
+  --green:     #3effa3;
+  --cyan:      #38bdf8;
+  --amber:     #fbbf24;
+  --pink:      #f472b6;
+  --red:       #fb7185;
+  --purple:    #a78bfa;
+  --mono:      'DM Mono', monospace;
+  --sans:      'DM Sans', sans-serif;
+  --display:   'Syne', sans-serif;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.75;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── NOISE TEXTURE OVERLAY ── */
+body::before {
+  content:'';
+  position:fixed;inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;opacity:0.35;
+}
+
+/* ── LAYOUT ── */
+.layout {
+  display:grid;
+  grid-template-columns:260px 1fr;
+  min-height:100vh;
+  position:relative;z-index:1;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  position:sticky;top:0;height:100vh;
+  overflow-y:auto;
+  background: linear-gradient(180deg, rgba(12,18,32,0.98) 0%, rgba(8,12,20,0.98) 100%);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  backdrop-filter:blur(20px);
+  box-shadow: 4px 0 40px rgba(0,0,0,0.4), inset -1px 0 0 rgba(255,255,255,0.04);
+}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+.sb-logo {
+  padding:28px 22px 22px;
+  border-bottom:1px solid var(--border);
+}
+.sb-logo-row {
+  display:flex;align-items:center;gap:10px;margin-bottom:6px;
+}
+.sb-icon {
+  width:34px;height:34px;
+  background: linear-gradient(135deg,#3effa3,#38bdf8);
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:13px;font-weight:500;
+  color:#080c14;
+  box-shadow:0 4px 20px rgba(62,255,163,0.3), 0 0 0 1px rgba(62,255,163,0.2);
+}
+.sb-title{font-family:var(--display);font-size:15px;font-weight:700;letter-spacing:0.02em}
+.sb-sub{font-size:11px;color:var(--sub);font-family:var(--mono);margin-left:44px}
+.sb-version{
+  display:inline-flex;align-items:center;gap:5px;margin-top:10px;
+  background:rgba(62,255,163,0.08);border:1px solid rgba(62,255,163,0.2);
+  color:var(--green);padding:3px 10px;border-radius:99px;
+  font-size:11px;font-family:var(--mono);
+}
+.sb-version::before{content:'●';font-size:8px}
+
+.nav-group-label {
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;
+  color:var(--muted);padding:14px 22px 4px;margin-top:4px;
+}
+.nav a {
+  display:flex;align-items:center;gap:9px;
+  padding:7px 22px;
+  font-size:13px;font-weight:400;color:var(--sub);
+  text-decoration:none;
+  border-left:2px solid transparent;
+  transition:all 0.2s;
+  position:relative;
+}
+.nav a:hover{color:var(--text);background:var(--glass);border-left-color:var(--border2)}
+.nav a.active{
+  color:var(--green);background:rgba(62,255,163,0.06);
+  border-left-color:var(--green);
+}
+.nav a.active::after{
+  content:'';position:absolute;right:0;top:0;bottom:0;width:1px;
+  background:rgba(62,255,163,0.2);
+}
+.nav-pip{width:6px;height:6px;border-radius:50%;flex-shrink:0;opacity:0.7}
+
+.sb-footer{
+  padding:16px 22px;border-top:1px solid var(--border);
+  font-size:11px;color:var(--muted);font-family:var(--mono);
+  margin-top:auto;
+}
+
+/* ── MAIN ── */
+.main{max-width:960px;position:relative}
+
+/* ── HERO ── */
+.hero {
+  padding:64px 60px 52px;
+  border-bottom:1px solid var(--border);
+  position:relative;overflow:hidden;
+}
+.hero-glow {
+  position:absolute;top:-120px;right:-80px;
+  width:500px;height:500px;
+  background:radial-gradient(circle, rgba(62,255,163,0.07) 0%, rgba(56,189,248,0.04) 40%, transparent 70%);
+  pointer-events:none;
+}
+.hero-glow2 {
+  position:absolute;bottom:-80px;left:30%;
+  width:300px;height:300px;
+  background:radial-gradient(circle, rgba(167,139,250,0.05) 0%, transparent 60%);
+  pointer-events:none;
+}
+.hero-badge {
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;
+  color:var(--green);margin-bottom:20px;font-family:var(--mono);
+}
+.hero-badge::before{content:'';width:24px;height:1.5px;background:var(--green);display:inline-block}
+
+.hero h1 {
+  font-family:var(--display);
+  font-size:52px;font-weight:800;line-height:1.1;
+  letter-spacing:-0.03em;
+  color:var(--text);margin-bottom:20px;
+}
+.hero h1 .accent{
+  background:linear-gradient(90deg,#3effa3,#38bdf8);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+
+.hero p{font-size:16px;color:var(--sub);max-width:580px;line-height:1.8}
+
+.hero-pills{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
+.pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:99px;font-size:12px;font-family:var(--mono);
+  border:1px solid var(--border2);color:var(--sub);
+  background:var(--glass);
+}
+.pill .dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+
+/* ── CONTENT ── */
+.content{padding:0 60px 100px}
+
+/* ── SECTION ── */
+.section{
+  padding-top:64px;padding-bottom:56px;
+  border-bottom:1px solid var(--border);
+  opacity:0;transform:translateY(20px);
+  transition:opacity 0.5s ease,transform 0.5s ease;
+}
+.section.visible{opacity:1;transform:translateY(0)}
+.section:last-child{border-bottom:none}
+
+.sec-header{
+  display:flex;align-items:center;gap:14px;margin-bottom:32px;
+  position:relative;
+}
+.sec-num{
+  font-family:var(--mono);font-size:11px;color:var(--muted);
+  min-width:26px;font-weight:400;
+}
+.sec-title{
+  font-family:var(--display);font-size:28px;font-weight:700;
+  letter-spacing:-0.02em;color:var(--text);
+}
+.sec-badge{
+  margin-left:auto;font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.1em;padding:4px 10px;border-radius:5px;border:1px solid;
+  font-family:var(--mono);flex-shrink:0;
+}
+.b-core{color:var(--cyan);border-color:rgba(56,189,248,0.3);background:rgba(56,189,248,0.06)}
+.b-api{color:var(--pink);border-color:rgba(244,114,182,0.3);background:rgba(244,114,182,0.06)}
+.b-perf{color:var(--amber);border-color:rgba(251,191,36,0.3);background:rgba(251,191,36,0.06)}
+.b-sys{color:var(--red);border-color:rgba(251,113,133,0.3);background:rgba(251,113,133,0.06)}
+.b-new{color:var(--purple);border-color:rgba(167,139,250,0.3);background:rgba(167,139,250,0.06)}
+
+/* ── 3D GLASS CARDS ── */
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+.card-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:18px 0}
+
+.card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+  border:1px solid var(--border2);
+  border-radius:12px;
+  padding:18px 20px;
+  position:relative;overflow:hidden;
+  transition:transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  transform-style:preserve-3d;
+  cursor:default;
+}
+.card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.06) 0%,transparent 60%);
+  border-radius:inherit;pointer-events:none;
+}
+.card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);
+}
+.card:hover{
+  transform:translateY(-3px) rotateX(1deg);
+  box-shadow:0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(62,255,163,0.1), inset 0 1px 0 rgba(255,255,255,0.08);
+  border-color:rgba(62,255,163,0.25);
+}
+
+.card-icon{font-size:20px;margin-bottom:10px}
+.card-title{
+  font-family:var(--mono);font-size:12px;font-weight:500;
+  color:var(--text);margin-bottom:7px;letter-spacing:0.02em;
+}
+.card p{font-size:13px;color:var(--sub);line-height:1.65}
+
+/* ── PROSE ── */
+.prose{max-width:760px}
+.prose p{color:var(--sub);margin-bottom:14px;font-size:15px;line-height:1.8}
+.prose strong{color:var(--text);font-weight:500}
+
+.prose h3{
+  font-family:var(--display);font-size:15px;font-weight:700;
+  color:var(--text);margin:28px 0 12px;display:flex;align-items:center;gap:10px;
+  letter-spacing:0.01em;
+}
+.prose h3::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── CODE ── */
+pre{
+  background: linear-gradient(180deg,#0a0f1e 0%,#080c18 100%);
+  border:1px solid var(--border2);
+  border-radius:10px;padding:20px 22px;overflow-x:auto;
+  margin:16px 0;position:relative;
+  box-shadow:0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+pre::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);
+}
+pre[data-lang]::after{
+  content:attr(data-lang);position:absolute;top:12px;right:16px;
+  font-family:var(--mono);font-size:10px;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.1em;
+}
+code{
+  font-family:var(--mono);font-size:13px;line-height:1.8;
+  color:#c9d8f0;
+}
+p code,li code,td code{
+  background:rgba(255,255,255,0.06);border:1px solid var(--border2);
+  padding:1px 6px;border-radius:4px;font-size:12.5px;
+  color:var(--cyan);font-family:var(--mono);
+}
+
+/* syntax */
+.kw{color:#fb7185}.fn{color:#c4b5fd}.str{color:#86efac}.cm{color:#4a6080;font-style:italic}
+.num{color:#fcd34d}.prop{color:#7dd3fc}.cls{color:#fdba74}.op{color:#94a3b8}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto;margin:16px 0;border-radius:10px;border:1px solid var(--border2)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+thead{background:rgba(255,255,255,0.03)}
+th{
+  text-align:left;padding:10px 14px;
+  font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.1em;color:var(--muted);
+  border-bottom:1px solid var(--border);font-family:var(--mono);
+}
+td{
+  padding:10px 14px;border-bottom:1px solid var(--border);
+  color:var(--sub);vertical-align:top;line-height:1.6;
+}
+td:first-child{font-family:var(--mono);font-size:12.5px;color:var(--cyan);white-space:nowrap}
+td strong{color:var(--text);font-weight:500}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--glass)}
+
+/* ── CALLOUT ── */
+.callout{
+  border-left:3px solid;border-radius:0 10px 10px 0;
+  padding:14px 18px;margin:18px 0;font-size:14px;
+}
+.callout.tip{border-color:var(--green);background:rgba(62,255,163,0.05)}
+.callout.warn{border-color:var(--amber);background:rgba(251,191,36,0.05)}
+.callout.danger{border-color:var(--red);background:rgba(251,113,133,0.05)}
+.callout.info{border-color:var(--cyan);background:rgba(56,189,248,0.05)}
+.callout.new{border-color:var(--purple);background:rgba(167,139,250,0.05)}
+
+.callout-label{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;
+  margin-bottom:5px;font-family:var(--mono);
+}
+.callout.tip .callout-label{color:var(--green)}
+.callout.warn .callout-label{color:var(--amber)}
+.callout.danger .callout-label{color:var(--red)}
+.callout.info .callout-label{color:var(--cyan)}
+.callout.new .callout-label{color:var(--purple)}
+.callout p{color:var(--sub);margin:0;font-size:13.5px}
+.callout p:not(:last-child){margin-bottom:6px}
+
+/* ── FLOW DIAGRAM ── */
+.flow{
+  display:flex;align-items:stretch;gap:0;
+  margin:22px 0;overflow-x:auto;padding:4px 0;
+}
+.flow-step{display:flex;align-items:center;gap:0;flex-shrink:0}
+.flow-box{
+  background:linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02));
+  border:1px solid var(--border2);border-radius:8px;
+  padding:10px 16px;text-align:center;
+  font-family:var(--mono);font-size:11.5px;color:var(--text);
+  line-height:1.4;
+  box-shadow:0 4px 16px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.07);
+  transition:all 0.2s;
+}
+.flow-box:hover{border-color:var(--green);box-shadow:0 6px 24px rgba(62,255,163,0.15)}
+.flow-box.hl{border-color:rgba(62,255,163,0.4);color:var(--green);background:rgba(62,255,163,0.06)}
+.flow-box small{display:block;font-size:10px;color:var(--muted);margin-top:2px}
+.flow-arrow{
+  padding:0 8px;color:var(--muted);font-size:14px;
+  display:flex;align-items:center;
+}
+
+/* ── FEATURE LIST ── */
+ul.fl{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:12px 0}
+ul.fl li{font-size:13.5px;color:var(--sub);padding-left:18px;position:relative}
+ul.fl li::before{content:'→';position:absolute;left:0;color:var(--green);font-size:11px;top:1px}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:24px 0}
+
+/* ── WATERMARK ── */
+.watermark-fixed {
+  position:fixed;bottom:20px;right:20px;z-index:1000;
+  background:linear-gradient(135deg,rgba(12,18,32,0.92),rgba(8,12,20,0.95));
+  border:1px solid rgba(62,255,163,0.25);
+  border-radius:10px;padding:8px 14px;
+  backdrop-filter:blur(12px);
+  box-shadow:0 8px 32px rgba(0,0,0,0.5),0 0 0 1px rgba(62,255,163,0.05), inset 0 1px 0 rgba(255,255,255,0.05);
+  display:flex;align-items:center;gap:8px;
+  animation:wm-in 0.6s 1s both ease;
+}
+@keyframes wm-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.wm-avatar{
+  width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,var(--green),var(--cyan));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--display);font-size:11px;font-weight:800;color:#080c14;
+  flex-shrink:0;
+}
+.wm-text{display:flex;flex-direction:column}
+.wm-name{font-family:var(--display);font-size:12px;font-weight:700;color:var(--text);line-height:1.2}
+.wm-role{font-family:var(--mono);font-size:10px;color:var(--green)}
+
+/* section watermark */
+.section-wm{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:10px;color:var(--muted);
+  padding:3px 10px;border:1px solid var(--border);border-radius:99px;
+  margin-top:20px;
+}
+.section-wm::before{content:'©';font-size:9px}
+
+/* ── COUNTER BADGE ── */
+.topic-count{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.25);
+  color:var(--purple);padding:3px 10px;border-radius:99px;
+  font-size:11px;font-family:var(--mono);margin-left:10px;
+}
+
+/* ── SECTION ENTRY ANIMATION ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── SCROLL TO TOP ── */
+#totop{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--glass2);border:1px solid var(--border2);
+  color:var(--sub);padding:6px 16px;border-radius:99px;
+  font-size:12px;font-family:var(--mono);cursor:pointer;
+  opacity:0;transition:all 0.3s;z-index:999;backdrop-filter:blur(8px);
+  text-decoration:none;display:flex;align-items:center;gap:6px;
+}
+#totop.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#totop:hover{color:var(--green);border-color:rgba(62,255,163,0.3)}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .hero,.content{padding-left:24px;padding-right:24px}
+  .hero h1{font-size:34px}
+  .card-grid,.card-grid-3,.two-col,ul.fl{grid-template-columns:1fr}
+  .flow{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<!-- WATERMARK FIXED -->
+<div class="watermark-fixed">
+  <div class="wm-avatar">SG</div>
+  <div class="wm-text">
+    <span class="wm-name">Sarita Gomi</span>
+    <span class="wm-role">Node.js Reference ✦ 2025</span>
+  </div>
+</div>
+
+<a href="#top" id="totop">↑ top</a>
+
+<div class="layout">
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-row">
+      <div class="sb-icon">N.</div>
+      <span class="sb-title">Node.js Ref</span>
+    </div>
+    <div class="sb-sub">by Sarita Gomi</div>
+    <div class="sb-version">v22 LTS &amp; v23 Current</div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-group-label">Runtime Core</div>
+    <a href="#architecture"><span class="nav-pip" style="background:var(--green)"></span>Architecture &amp; Event Loop</a>
+    <a href="#modules"><span class="nav-pip" style="background:var(--cyan)"></span>Module System</a>
+    <a href="#async"><span class="nav-pip" style="background:var(--green)"></span>Async Patterns</a>
+
+    <div class="nav-group-label">Core APIs</div>
+    <a href="#streams"><span class="nav-pip" style="background:var(--pink)"></span>Streams &amp; Backpressure</a>
+    <a href="#buffers"><span class="nav-pip" style="background:var(--cyan)"></span>Buffers &amp; Binary</a>
+    <a href="#fs"><span class="nav-pip" style="background:var(--green)"></span>File System</a>
+    <a href="#net"><span class="nav-pip" style="background:var(--amber)"></span>Net &amp; HTTP(S)</a>
+    <a href="#events"><span class="nav-pip" style="background:var(--green)"></span>EventEmitter</a>
+
+    <div class="nav-group-label">Concurrency</div>
+    <a href="#child"><span class="nav-pip" style="background:var(--red)"></span>Child Processes</a>
+    <a href="#worker"><span class="nav-pip" style="background:var(--pink)"></span>Worker Threads</a>
+    <a href="#cluster"><span class="nav-pip" style="background:var(--cyan)"></span>Cluster</a>
+
+    <div class="nav-group-label">Advanced</div>
+    <a href="#errors"><span class="nav-pip" style="background:var(--red)"></span>Error Handling</a>
+    <a href="#crypto"><span class="nav-pip" style="background:var(--amber)"></span>Crypto</a>
+    <a href="#diagnostics"><span class="nav-pip" style="background:var(--purple)"></span>Diagnostics &amp; Perf</a>
+    <a href="#security"><span class="nav-pip" style="background:var(--red)"></span>Security</a>
+    <a href="#v8"><span class="nav-pip" style="background:var(--purple)"></span>V8 &amp; Memory</a>
+    <a href="#newfeatures"><span class="nav-pip" style="background:var(--purple)"></span>Node 20–23 Features</a>
+  </nav>
+
+  <div class="sb-footer">
+    <div>© Sarita Gomi · 2025</div>
+    <div style="margin-top:4px;color:var(--muted)">For 5+ yr engineers</div>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<main class="main" id="top">
+
+<div class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="hero-badge">Node.js Master Reference</div>
+  <h1>Everything you<br>need to build<br><span class="accent">production Node.js</span></h1>
+  <p>Dense, battle-tested, production-focused. No beginner hand-holding — just the internals, patterns, APIs and gotchas that matter at scale. Curated by Sarita Gomi.</p>
+  <div class="hero-pills">
+    <span class="pill"><span class="dot"></span>v22 LTS / v23 Current</span>
+    <span class="pill"><span class="dot"></span>ESM + CJS</span>
+    <span class="pill"><span class="dot"></span>16 Core Topics</span>
+    <span class="pill"><span class="dot"></span>Production Patterns</span>
+    <span class="pill"><span class="dot"></span>Sarita Gomi</span>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ─────────────────── 01 ARCHITECTURE ─────────────────── -->
+<section class="section" id="architecture">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <h2 class="sec-title">Architecture &amp; Event Loop</h2>
+    <span class="sec-badge b-core">Core</span>
+  </div>
+
+  <div class="prose">
+    <p>Node.js runs on a <strong>single-threaded event loop</strong> powered by V8 (JS engine) and libuv (async I/O + thread pool). The process never blocks waiting for I/O — instead it registers callbacks and processes results when they're ready.</p>
+    <h3>Event Loop — 6 Phases</h3>
+  </div>
+
+  <div class="flow">
+    <div class="flow-step"><div class="flow-box">timers<small>setTimeout / setInterval</small></div><div class="flow-arrow">→</div></div>
+    <div class="flow-step"><div class="flow-box">pending I/O<small>prev-cycle I/O errors</small></div><div class="flow-arrow">→</div></div>
+    <div class="flow-step"><div class="flow-box">idle / prepare<small>internal only</small></div><div class="flow-arrow">→</div></div>
+    <div class="flow-step"><div class="flow-box hl">poll<small>fetch new I/O events</small></div><div class="flow-arrow">→</div></div>
+    <div class="flow-step"><div class="flow-box">check<small>setImmediate()</small></div><div class="flow-arrow">→</div></div>
+    <div class="flow-step"><div class="flow-box">close callbacks<small>socket.on('close')</small></div></div>
+  </div>
+
+  <div class="callout info">
+    <div class="callout-label">⚡ Between every phase — microtask drain</div>
+    <p>Node drains <strong>process.nextTick queue first</strong>, then the <strong>Promise microtask queue</strong>, before moving to the next phase. This happens after every I/O callback too.</p>
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>API</th><th>Queue</th><th>Priority</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>process.nextTick()</td><td>nextTick queue</td><td><strong>1 — highest</strong></td><td>Runs before any I/O, before Promise callbacks</td></tr>
+      <tr><td>queueMicrotask()</td><td>microtask queue</td><td><strong>2</strong></td><td>Same queue as Promise.then()</td></tr>
+      <tr><td>Promise.resolve()</td><td>microtask queue</td><td><strong>2</strong></td><td>After nextTick, before I/O</td></tr>
+      <tr><td>setImmediate()</td><td>check phase</td><td><strong>3</strong></td><td>After current I/O poll completes</td></tr>
+      <tr><td>setTimeout(fn, 0)</td><td>timers phase</td><td><strong>3–4</strong></td><td>OS timer resolution (~1ms) makes order non-deterministic vs setImmediate</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <pre data-lang="js"><code><span class="cm">// Classic execution order puzzle</span>
+<span class="fn">setTimeout</span>(() => <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">'A: timeout'</span>), <span class="num">0</span>);
+<span class="fn">setImmediate</span>(() => <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">'B: immediate'</span>));
+<span class="cls">Promise</span>.<span class="fn">resolve</span>().<span class="fn">then</span>(() => <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">'C: promise'</span>));
+process.<span class="fn">nextTick</span>(() => <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">'D: nextTick'</span>));
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="str">'E: sync'</span>);
+<span class="cm">// ▶ E → D → C → A or B (non-deterministic) → B or A</span>
+
+<span class="cm">// Inside I/O callback: setImmediate always before setTimeout</span>
+fs.<span class="fn">readFile</span>(<span class="str">'x'</span>, () => {
+  <span class="fn">setTimeout</span>(() => <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">'timeout'</span>));
+  <span class="fn">setImmediate</span>(() => <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">'immediate'</span>)); <span class="cm">// always first here</span>
+});</code></pre>
+
+  <div class="prose">
+    <h3>libuv Thread Pool</h3>
+    <p>Blocking I/O that cannot be done asynchronously at the OS level is offloaded to libuv's thread pool: <code>fs.*</code> (most ops), DNS lookup via <code>dns.lookup()</code>, <code>crypto</code> heavy ops, <code>zlib</code>. Default pool size = <strong>4 threads</strong>. Saturating it causes I/O queuing.</p>
+  </div>
+  <pre data-lang="sh"><code><span class="cm"># Increase thread pool — max 128, recommended: num CPU cores</span>
+UV_THREADPOOL_SIZE=16 node server.js</code></pre>
+
+  <div class="callout warn">
+    <div class="callout-label">⚠ Blocking the Event Loop</div>
+    <p>Synchronous CPU work (regex on untrusted input, large JSON.parse, bcrypt) stalls <em>all</em> requests. Use Worker Threads for CPU work. Never call <code>fs.readFileSync</code> / <code>crypto.pbkdf2Sync</code> in request handlers.</p>
+  </div>
+
+  <div class="section-wm">Sarita Gomi · Node.js Reference 2025</div>
+</section>
+
+<!-- ─────────────────── 02 MODULES ─────────────────── -->
+<section class="section" id="modules">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <h2 class="sec-title">Module System</h2>
+    <span class="sec-badge b-core">Core</span>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">📦</div>
+      <div class="card-title">CommonJS (CJS)</div>
+      <p><strong>Synchronous.</strong> <code>require()</code> / <code>module.exports</code>. File executed &amp; cached on first require. Circular deps return <em>partial</em> exports object.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <div class="card-title">ES Modules (ESM)</div>
+      <p><strong>Async, static.</strong> Live bindings. Top-level <code>await</code>. Tree-shakeable. Requires <code>.mjs</code> or <code>"type":"module"</code> in package.json.</p>
+    </div>
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>Feature</th><th>CJS</th><th>ESM</th></tr></thead>
+    <tbody>
+      <tr><td>__dirname / __filename</td><td>✅ built-in</td><td>❌ use <code>import.meta.dirname</code> (Node 21.2+) or fileURLToPath</td></tr>
+      <tr><td>Dynamic import</td><td><code>require('./x')</code></td><td><code>await import('./x')</code></td></tr>
+      <tr><td>Top-level await</td><td>❌</td><td>✅</td></tr>
+      <tr><td>Tree shaking</td><td>❌ not statically analysable</td><td>✅ bundlers can eliminate dead code</td></tr>
+      <tr><td>Named exports from JSON</td><td>✅ <code>require('./x.json')</code></td><td>✅ with <code>assert {type:'json'}</code> (Node 22+)</td></tr>
+      <tr><td>Interop: load CJS from ESM</td><td>—</td><td><code>await import()</code> works; named exports may require .default</td></tr>
+      <tr><td>Interop: load ESM from CJS</td><td>Only via <code>await import()</code></td><td>—</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <pre data-lang="js"><code><span class="cm">// ESM: polyfill __dirname (pre Node 21.2)</span>
+<span class="kw">import</span> { fileURLToPath } <span class="kw">from</span> <span class="str">'url'</span>;
+<span class="kw">import</span> { dirname, join } <span class="kw">from</span> <span class="str">'path'</span>;
+<span class="kw">const</span> __filename = <span class="fn">fileURLToPath</span>(<span class="kw">import</span>.meta.url);
+<span class="kw">const</span> __dirname  = <span class="fn">dirname</span>(__filename);
+
+<span class="cm">// package.json conditional exports (dual CJS/ESM package)</span>
+{
+  <span class="str">"exports"</span>: {
+    <span class="str">"."</span>: {
+      <span class="str">"types"</span>:   <span class="str">"./dist/index.d.ts"</span>,
+      <span class="str">"import"</span>:  <span class="str">"./dist/index.mjs"</span>,
+      <span class="str">"require"</span>: <span class="str">"./dist/index.cjs"</span>
+    },
+    <span class="str">"./utils"</span>: <span class="str">"./dist/utils.mjs"</span>
+  },
+  <span class="str">"imports"</span>: { <span class="str">"#db"</span>: <span class="str">"./src/db.js"</span> }   <span class="cm">// subpath imports (private aliases)</span>
+}
+
+<span class="cm">// CJS cache invalidation (hot reload in tests)</span>
+<span class="kw">delete</span> require.cache[require.<span class="fn">resolve</span>(<span class="str">'./config'</span>)];
+<span class="kw">const</span> freshConfig = <span class="fn">require</span>(<span class="str">'./config'</span>);</code></pre>
+
+  <div class="callout tip">
+    <div class="callout-label">💡 Module resolution order</div>
+    <p>CJS: exact file → .js → .json → .node → directory/index.js. <strong>node_modules</strong> walks up the directory tree. Override with <code>NODE_PATH</code> or <code>--conditions</code> flag for custom export conditions.</p>
+  </div>
+</section>
+
+<!-- ─────────────────── 03 ASYNC ─────────────────── -->
+<section class="section" id="async">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <h2 class="sec-title">Async Patterns</h2>
+    <span class="sec-badge b-core">Core</span>
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>Combinator</th><th>Resolves when</th><th>Rejects when</th><th>Use case</th></tr></thead>
+    <tbody>
+      <tr><td>Promise.all()</td><td>All resolve</td><td>First rejection (fast-fail)</td><td>Parallel independent tasks where any error is fatal</td></tr>
+      <tr><td>Promise.allSettled()</td><td>All settle</td><td>Never</td><td>Need all results, including failures</td></tr>
+      <tr><td>Promise.race()</td><td>First settles</td><td>First rejects</td><td>Timeout pattern, first response wins</td></tr>
+      <tr><td>Promise.any()</td><td>First resolves</td><td>All reject → AggregateError</td><td>First success wins, ignore partial failures</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <pre data-lang="js"><code><span class="kw">import</span> { promisify } <span class="kw">from</span> <span class="str">'util'</span>;
+
+<span class="cm">// promisify legacy callbacks</span>
+<span class="kw">const</span> sleep = <span class="fn">promisify</span>(<span class="fn">setTimeout</span>);
+<span class="kw">await</span> <span class="fn">sleep</span>(<span class="num">1000</span>);
+
+<span class="cm">// AbortController — cancellable operations</span>
+<span class="kw">const</span> ac = <span class="kw">new</span> <span class="cls">AbortController</span>();
+<span class="fn">setTimeout</span>(() => ac.<span class="fn">abort</span>(<span class="kw">new</span> <span class="cls">Error</span>(<span class="str">'timeout'</span>)), <span class="num">5000</span>);
+<span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(url, { signal: ac.signal });
+
+<span class="cm">// AbortSignal.timeout() — Node 20+ shorthand</span>
+<span class="kw">const</span> res2 = <span class="kw">await</span> <span class="fn">fetch</span>(url, { signal: <span class="cls">AbortSignal</span>.<span class="fn">timeout</span>(<span class="num">5000</span>) });
+
+<span class="cm">// Concurrency limiter — no external dependency</span>
+<span class="kw">async function</span> <span class="fn">pMap</span>(items, fn, limit = <span class="num">5</span>) {
+  <span class="kw">const</span> results = [];
+  <span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i < items.length; i += limit) {
+    <span class="kw">const</span> batch = items.<span class="fn">slice</span>(i, i + limit);
+    results.<span class="fn">push</span>(...<span class="kw">await</span> <span class="cls">Promise</span>.<span class="fn">all</span>(batch.<span class="fn">map</span>(fn)));
+  }
+  <span class="kw">return</span> results;
+}
+
+<span class="cm">// Async iterator / generator</span>
+<span class="kw">async function</span>* <span class="fn">paginate</span>(baseUrl) {
+  <span class="kw">let</span> url = baseUrl;
+  <span class="kw">while</span> (url) {
+    <span class="kw">const</span> { data, nextPage } = <span class="kw">await</span> <span class="fn">fetch</span>(url).<span class="fn">then</span>(r => r.<span class="fn">json</span>());
+    <span class="kw">yield</span>* data;
+    url = nextPage;
+  }
+}
+<span class="kw">for await</span> (<span class="kw">const</span> item <span class="kw">of</span> <span class="fn">paginate</span>(<span class="str">'/api/users?page=1'</span>)) {
+  <span class="fn">process</span>(item);
+}</code></pre>
+
+  <div class="callout warn">
+    <div class="callout-label">⚠ Common async mistakes</div>
+    <p><strong>1.</strong> Calling an async function without <code>await</code> — silently ignores errors.<br>
+    <strong>2.</strong> <code>forEach</code> with async callbacks — doesn't await them. Use <code>for...of</code> or <code>Promise.all</code>.<br>
+    <strong>3.</strong> Over-using <code>Promise.all</code> for dependent sequential tasks.</p>
+  </div>
+</section>
+
+<!-- ─────────────────── 04 STREAMS ─────────────────── -->
+<section class="section" id="streams">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <h2 class="sec-title">Streams &amp; Backpressure</h2>
+    <span class="sec-badge b-api">API</span>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">📥</div>
+      <div class="card-title">Readable</div>
+      <p>Source. Two modes: <strong>flowing</strong> (push via <code>data</code> event) and <strong>paused</strong> (pull via <code>read()</code>). Prefer async iteration.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📤</div>
+      <div class="card-title">Writable</div>
+      <p>Sink. <code>write()</code> returns <code>false</code> when buffer is full. Stop writing, wait for <code>drain</code> event. Backpressure is your responsibility.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔁</div>
+      <div class="card-title">Duplex</div>
+      <p>Both readable and writable. Sides are <em>independent</em>. Example: TCP sockets, WebSocket connections.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚙️</div>
+      <div class="card-title">Transform</div>
+      <p>Duplex where output is computed from input. Implement <code>_transform(chunk, enc, cb)</code>. Examples: zlib, cipher, CSV parser.</p>
+    </div>
+  </div>
+
+  <div class="callout danger">
+    <div class="callout-label">🔴 Backpressure — #1 streams mistake</div>
+    <p>Ignoring <code>write()</code> returning <code>false</code> accumulates data in memory without bound. Always use <code>pipeline()</code> which handles backpressure automatically and destroys all streams on error.</p>
+  </div>
+
+  <pre data-lang="js"><code><span class="kw">import</span> { pipeline } <span class="kw">from</span> <span class="str">'stream/promises'</span>;
+<span class="kw">import</span> { createReadStream, createWriteStream } <span class="kw">from</span> <span class="str">'fs'</span>;
+<span class="kw">import</span> { createGzip } <span class="kw">from</span> <span class="str">'zlib'</span>;
+<span class="kw">import</span> { Transform } <span class="kw">from</span> <span class="str">'stream'</span>;
+
+<span class="cm">// pipeline: backpressure + error cleanup — always prefer over .pipe()</span>
+<span class="kw">await</span> <span class="fn">pipeline</span>(
+  <span class="fn">createReadStream</span>(<span class="str">'huge.csv'</span>),
+  <span class="kw">new</span> <span class="cls">Transform</span>({
+    <span class="fn">transform</span>(chunk, _, cb) { <span class="kw">this</span>.<span class="fn">push</span>(chunk.<span class="fn">toString</span>().<span class="fn">toUpperCase</span>()); <span class="fn">cb</span>(); }
+  }),
+  <span class="fn">createGzip</span>(),
+  <span class="fn">createWriteStream</span>(<span class="str">'out.csv.gz'</span>)
+);
+
+<span class="cm">// Async iteration over a stream (cleanest API)</span>
+<span class="kw">const</span> input = <span class="fn">createReadStream</span>(<span class="str">'data.ndjson'</span>, { encoding: <span class="str">'utf8'</span> });
+<span class="kw">for await</span> (<span class="kw">const</span> line <span class="kw">of</span> input) { <span class="fn">processLine</span>(line); }
+
+<span class="cm">// Web Streams ↔ Node Streams interop (Node 18+)</span>
+<span class="kw">import</span> { Readable } <span class="kw">from</span> <span class="str">'stream'</span>;
+<span class="kw">const</span> webStream  = <span class="cls">Readable</span>.<span class="fn">toWeb</span>(nodeReadable);   <span class="cm">// ReadableStream</span>
+<span class="kw">const</span> nodeStream = <span class="cls">Readable</span>.<span class="fn">fromWeb</span>(webReadable);  <span class="cm">// Node Readable</span>
+
+<span class="cm">// fetch response body IS a web ReadableStream</span>
+<span class="kw">const</span> nodeBody = <span class="cls">Readable</span>.<span class="fn">fromWeb</span>((await <span class="fn">fetch</span>(url)).body);</code></pre>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>highWaterMark default</th><th>Value</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>byte mode (default)</td><td>16 KB</td><td>Bytes buffered before backpressure signals</td></tr>
+      <tr><td>objectMode: true</td><td>16 objects</td><td>Object count buffered before pause</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ─────────────────── 05 BUFFERS ─────────────────── -->
+<section class="section" id="buffers">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <h2 class="sec-title">Buffers &amp; Binary Data</h2>
+    <span class="sec-badge b-api">API</span>
+  </div>
+
+  <div class="prose">
+    <p><code>Buffer</code> is a <strong>fixed-size raw memory region outside V8's heap</strong> — a subclass of <code>Uint8Array</code>. Essential for binary protocols, file I/O, network packets, and crypto.</p>
+  </div>
+
+  <pre data-lang="js"><code><span class="cm">// ── Construction ──────────────────────────────────────────</span>
+<span class="cls">Buffer</span>.<span class="fn">from</span>(<span class="str">'hello'</span>, <span class="str">'utf8'</span>)          <span class="cm">// from string</span>
+<span class="cls">Buffer</span>.<span class="fn">from</span>([<span class="num">0x68</span>, <span class="num">0x65</span>, <span class="num">0x6c</span>])       <span class="cm">// from byte array</span>
+<span class="cls">Buffer</span>.<span class="fn">from</span>(arrayBuffer, offset, len)  <span class="cm">// from ArrayBuffer (zero-copy)</span>
+<span class="cls">Buffer</span>.<span class="fn">alloc</span>(<span class="num">64</span>)                       <span class="cm">// zero-filled — safe for user output</span>
+<span class="cls">Buffer</span>.<span class="fn">allocUnsafe</span>(<span class="num">64</span>)                <span class="cm">// uninitialized — faster, never expose raw</span>
+<span class="cls">Buffer</span>.<span class="fn">concat</span>([buf1, buf2, buf3])      <span class="cm">// merge multiple buffers</span>
+
+<span class="cm">// ── Encoding ──────────────────────────────────────────────</span>
+buf.<span class="fn">toString</span>(<span class="str">'hex'</span>)     <span class="cm">// '68656c6c6f'</span>
+buf.<span class="fn">toString</span>(<span class="str">'base64'</span>)  <span class="cm">// 'aGVsbG8='</span>
+buf.<span class="fn">toString</span>(<span class="str">'utf8'</span>)    <span class="cm">// 'hello'</span>
+<span class="cm">// Supported: utf8, ascii, hex, base64, base64url, latin1, ucs2, binary</span>
+
+<span class="cm">// ── Structured binary (custom protocol / file format) ────</span>
+<span class="kw">const</span> buf = <span class="cls">Buffer</span>.<span class="fn">allocUnsafe</span>(<span class="num">16</span>);
+buf.<span class="fn">writeUInt32BE</span>(<span class="num">0xdeadbeef</span>, <span class="num">0</span>);    <span class="cm">// 4 bytes big-endian at offset 0</span>
+buf.<span class="fn">writeUInt16LE</span>(<span class="num">1024</span>, <span class="num">4</span>);          <span class="cm">// 2 bytes little-endian at offset 4</span>
+buf.<span class="fn">writeBigInt64LE</span>(<span class="num">9007199254740991n</span>, <span class="num">6</span>); <span class="cm">// BigInt support</span>
+<span class="kw">const</span> magic = buf.<span class="fn">readUInt32BE</span>(<span class="num">0</span>);   <span class="cm">// 0xdeadbeef</span>
+
+<span class="cm">// ── Timing-safe comparison (crypto use) ──────────────────</span>
+<span class="kw">import</span> { timingSafeEqual } <span class="kw">from</span> <span class="str">'crypto'</span>;
+<span class="kw">const</span> ok = <span class="fn">timingSafeEqual</span>(hmac1, hmac2); <span class="cm">// prevents timing attacks</span></code></pre>
+
+  <div class="callout danger">
+    <div class="callout-label">🔴 allocUnsafe security</div>
+    <p><code>Buffer.allocUnsafe()</code> may contain sensitive data from prior memory allocations. Always write before sending. Use <code>Buffer.alloc()</code> for any buffer exposed to users or clients.</p>
+  </div>
+</section>
+
+<!-- ─────────────────── 06 FILE SYSTEM ─────────────────── -->
+<section class="section" id="fs">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <h2 class="sec-title">File System</h2>
+    <span class="sec-badge b-api">API</span>
+  </div>
+
+  <div class="prose">
+    <p>Three flavors: <code>fs</code> (callback), <code>fs/promises</code> (async/await), <code>fs.*Sync</code>. <strong>Always use <code>fs/promises</code> in request paths.</strong> Sync calls block the event loop for all concurrent requests.</p>
+  </div>
+
+  <pre data-lang="js"><code><span class="kw">import</span> { readFile, writeFile, rename, stat, mkdir, rm, opendir, watch, copyFile } <span class="kw">from</span> <span class="str">'fs/promises'</span>;
+
+<span class="cm">// ── Atomic write pattern ─────────────────────────────────</span>
+<span class="kw">await</span> <span class="fn">writeFile</span>(<span class="str">`${path}.tmp`</span>, <span class="cls">JSON</span>.<span class="fn">stringify</span>(data));
+<span class="kw">await</span> <span class="fn">rename</span>(<span class="str">`${path}.tmp`</span>, path); <span class="cm">// atomic on same filesystem</span>
+
+<span class="cm">// ── Safe existence check (avoids TOCTOU race) ────────────</span>
+<span class="kw">try</span> {
+  <span class="kw">const</span> s = <span class="kw">await</span> <span class="fn">stat</span>(filePath);
+  <span class="kw">if</span> (s.isFile()) <span class="cm">/* exists as file */</span>;
+} <span class="kw">catch</span> (e) {
+  <span class="kw">if</span> (e.code !== <span class="str">'ENOENT'</span>) <span class="kw">throw</span> e; <span class="cm">// only ignore "not found"</span>
+}
+
+<span class="cm">// ── Walk directory tree (memory-efficient) ───────────────</span>
+<span class="kw">async function</span>* <span class="fn">walk</span>(dir) {
+  <span class="kw">for await</span> (<span class="kw">const</span> entry <span class="kw">of</span> <span class="kw">await</span> <span class="fn">opendir</span>(dir)) {
+    <span class="kw">const</span> full = `${dir}/${entry.name}`;
+    <span class="kw">if</span> (entry.isDirectory()) <span class="kw">yield</span>* <span class="fn">walk</span>(full);
+    <span class="kw">else</span> <span class="kw">yield</span> full;
+  }
+}
+
+<span class="cm">// ── Watch (recursive stable in Node 22) ──────────────────</span>
+<span class="kw">const</span> watcher = <span class="fn">watch</span>(<span class="str">'./src'</span>, { recursive: <span class="kw">true</span> });
+<span class="kw">for await</span> (<span class="kw">const</span> { eventType, filename } <span class="kw">of</span> watcher) {
+  <span class="fn">console</span>.<span class="fn">log</span>(eventType, filename);
+}
+
+<span class="cm">// ── Recursive delete / create ────────────────────────────</span>
+<span class="kw">await</span> <span class="fn">mkdir</span>(<span class="str">'a/b/c'</span>, { recursive: <span class="kw">true</span> });
+<span class="kw">await</span> <span class="fn">rm</span>(<span class="str">'dist'</span>, { recursive: <span class="kw">true</span>, force: <span class="kw">true</span> });</code></pre>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>Task</th><th>Best approach</th></tr></thead>
+    <tbody>
+      <tr><td>Read large file</td><td><code>createReadStream()</code> — never load multi-GB into memory</td></tr>
+      <tr><td>Atomic config write</td><td>Write to <code>.tmp</code>, <code>rename()</code></td></tr>
+      <tr><td>File existence check</td><td><code>stat()</code> in try/catch — TOCTOU-safe</td></tr>
+      <tr><td>Recursive delete</td><td><code>rm(path, { recursive: true, force: true })</code></td></tr>
+      <tr><td>Copy file</td><td><code>copyFile(src, dest, fs.constants.COPYFILE_EXCL)</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ─────────────────── 07 NET & HTTP ─────────────────── -->
+<section class="section" id="net">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <h2 class="sec-title">Net &amp; HTTP(S)</h2>
+    <span class="sec-badge b-perf">Performance</span>
+  </div>
+
+  <pre data-lang="js"><code><span class="cm">// ── HTTP/1.1 with keep-alive agent ───────────────────────</span>
+<span class="kw">import</span> http <span class="kw">from</span> <span class="str">'http'</span>;
+<span class="kw">const</span> agent = <span class="kw">new</span> http.<span class="cls">Agent</span>({ keepAlive: <span class="kw">true</span>, maxSockets: <span class="num">50</span>, maxFreeSockets: <span class="num">10</span> });
+
+<span class="cm">// ── Native fetch (Node 18+) — no import needed ───────────</span>
+<span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'https://api.example.com/data'</span>, {
+  method: <span class="str">'POST'</span>,
+  signal: <span class="cls">AbortSignal</span>.<span class="fn">timeout</span>(<span class="num">5000</span>),
+  headers: { <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span> },
+  body: <span class="cls">JSON</span>.<span class="fn">stringify</span>(payload)
+});
+<span class="kw">if</span> (!res.ok) <span class="kw">throw new</span> <span class="cls">Error</span>(`HTTP ${res.status}`);
+<span class="kw">const</span> data = <span class="kw">await</span> res.<span class="fn">json</span>();
+
+<span class="cm">// ── HTTP/2 (multiplexed, no head-of-line blocking) ───────</span>
+<span class="kw">import</span> http2 <span class="kw">from</span> <span class="str">'http2'</span>;
+<span class="kw">const</span> client = http2.<span class="fn">connect</span>(<span class="str">'https://api.example.com'</span>);
+<span class="kw">const</span> req    = client.<span class="fn">request</span>({ <span class="str">':path'</span>: <span class="str">'/stream'</span>, <span class="str">':method'</span>: <span class="str">'GET'</span> });
+req.<span class="fn">setEncoding</span>(<span class="str">'utf8'</span>);
+req.<span class="kw">on</span>(<span class="str">'data'</span>, chunk => chunks.<span class="fn">push</span>(chunk));
+req.<span class="fn">end</span>();
+<span class="kw">await</span> <span class="fn">once</span>(req, <span class="str">'end'</span>);
+client.<span class="fn">close</span>();
+
+<span class="cm">// ── HTTP/2 push (server side) ────────────────────────────</span>
+server.<span class="kw">on</span>(<span class="str">'stream'</span>, (stream, headers) => {
+  stream.<span class="fn">pushStream</span>({ <span class="str">':path'</span>: <span class="str">'/style.css'</span> }, (err, push) => {
+    push.<span class="fn">respond</span>({ <span class="str">'content-type'</span>: <span class="str">'text/css'</span>, <span class="str">':status'</span>: <span class="num">200</span> });
+    push.<span class="fn">end</span>(cssContent);
+  });
+});
+
+<span class="cm">// ── Raw TCP ──────────────────────────────────────────────</span>
+<span class="kw">import</span> net <span class="kw">from</span> <span class="str">'net'</span>;
+<span class="kw">const</span> server = net.<span class="fn">createServer</span>(socket => {
+  socket.<span class="fn">setNoDelay</span>(<span class="kw">true</span>);       <span class="cm">// disable Nagle's algorithm</span>
+  socket.<span class="fn">setKeepAlive</span>(<span class="kw">true</span>, <span class="num">60000</span>); <span class="cm">// detect dead peers</span>
+  socket.<span class="fn">pipe</span>(socket);            <span class="cm">// echo server</span>
+}).<span class="fn">listen</span>(<span class="num">3000</span>);</code></pre>
+
+  <div class="callout warn">
+    <div class="callout-label">⚠ dns.lookup vs dns.resolve</div>
+    <p><code>dns.lookup()</code> → libuv thread pool → uses <code>/etc/hosts</code> + system resolver. <code>dns.resolve4()</code> → async, goes straight to DNS server, bypasses system resolver. In containers, always use <code>dns.resolve*()</code> for predictable behavior.</p>
+  </div>
+</section>
+
+<!-- ─────────────────── 08 EVENTEMITTER ─────────────────── -->
+<section class="section" id="events">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <h2 class="sec-title">EventEmitter</h2>
+    <span class="sec-badge b-core">Core</span>
+  </div>
+
+  <pre data-lang="js"><code><span class="kw">import</span> { EventEmitter, once, on } <span class="kw">from</span> <span class="str">'events'</span>;
+
+<span class="kw">class</span> <span class="cls">DataBus</span> <span class="kw">extends</span> <span class="cls">EventEmitter</span> {
+  <span class="fn">publish</span>(topic, payload) { <span class="kw">this</span>.<span class="fn">emit</span>(topic, payload); }
+}
+
+<span class="kw">const</span> bus = <span class="kw">new</span> <span class="cls">DataBus</span>({ captureRejections: <span class="kw">true</span> }); <span class="cm">// Node 12+</span>
+
+bus.<span class="fn">on</span>(<span class="str">'order'</span>, <span class="kw">async</span> order => <span class="kw">await</span> <span class="fn">processOrder</span>(order)); <span class="cm">// error → 'error' event</span>
+bus.<span class="fn">once</span>(<span class="str">'ready'</span>, () => <span class="fn">startAcceptingWork</span>());
+
+<span class="cm">// Convert event to Promise</span>
+<span class="kw">await</span> <span class="fn">once</span>(bus, <span class="str">'ready'</span>);
+
+<span class="cm">// Convert event stream to async iterable (Node 12+)</span>
+<span class="kw">for await</span> (<span class="kw">const</span> [order] <span class="kw">of</span> <span class="fn">on</span>(bus, <span class="str">'order'</span>)) {
+  <span class="kw">await</span> <span class="fn">processOrder</span>(order);
+}
+
+<span class="cm">// Listener limit (default 10 — warns when exceeded)</span>
+bus.<span class="fn">setMaxListeners</span>(<span class="num">50</span>);
+
+<span class="cm">// CRITICAL: unhandled 'error' event crashes the process</span>
+bus.<span class="kw">on</span>(<span class="str">'error'</span>, err => logger.<span class="fn">error</span>(err));
+
+<span class="cm">// Remove specific listener (must be same function reference)</span>
+<span class="kw">const</span> handler = data => <span class="fn">process</span>(data);
+bus.<span class="fn">on</span>(<span class="str">'data'</span>, handler);
+bus.<span class="fn">off</span>(<span class="str">'data'</span>, handler);  <span class="cm">// removeListener alias</span>
+
+<span class="cm">// Introspection</span>
+bus.<span class="fn">listenerCount</span>(<span class="str">'data'</span>);
+bus.<span class="fn">eventNames</span>();
+bus.<span class="fn">rawListeners</span>(<span class="str">'data'</span>); <span class="cm">// includes once-wrappers</span></code></pre>
+
+  <div class="section-wm">Sarita Gomi · Node.js Reference 2025</div>
+</section>
+
+<!-- ─────────────────── 09 CHILD PROCESSES ─────────────────── -->
+<section class="section" id="child">
+  <div class="sec-header">
+    <span class="sec-num">09</span>
+    <h2 class="sec-title">Child Processes</h2>
+    <span class="sec-badge b-sys">System</span>
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>API</th><th>Use case</th><th>Streams output</th><th>Shell</th><th>Key gotcha</th></tr></thead>
+    <tbody>
+      <tr><td>exec()</td><td>Quick shell command</td><td>No — buffered</td><td>Yes ⚠</td><td>Default 1MB buffer; shell injection risk</td></tr>
+      <tr><td>execFile()</td><td>Run binary, buffered output</td><td>No — buffered</td><td>No ✅</td><td>Safer; no shell; still 1MB buffer</td></tr>
+      <tr><td>spawn()</td><td>Long-running, streaming</td><td>Yes ✅</td><td>No</td><td>No buffer limit; manual exit code check</td></tr>
+      <tr><td>fork()</td><td>Node.js child with IPC</td><td>Yes ✅</td><td>No</td><td>Own V8 instance; IPC via <code>send()</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <pre data-lang="js"><code><span class="kw">import</span> { execFile, spawn, fork } <span class="kw">from</span> <span class="str">'child_process'</span>;
+<span class="kw">import</span> { promisify } <span class="kw">from</span> <span class="str">'util'</span>;
+<span class="kw">const</span> execFileAsync = <span class="fn">promisify</span>(execFile);
+
+<span class="cm">// Safe: no shell, args as array (injection-proof)</span>
+<span class="kw">const</span> { stdout } = <span class="kw">await</span> <span class="fn">execFileAsync</span>(<span class="str">'git'</span>, [<span class="str">'log'</span>, <span class="str">'--oneline'</span>, <span class="str">'-20'</span>]);
+
+<span class="cm">// Streaming with backpressure check</span>
+<span class="kw">const</span> child = <span class="fn">spawn</span>(<span class="str">'ffmpeg'</span>, [<span class="str">'-i'</span>, input, <span class="str">'-f'</span>, <span class="str">'mp3'</span>, output]);
+child.stderr.<span class="fn">pipe</span>(process.stderr);
+<span class="kw">const</span> code = <span class="kw">await new</span> <span class="cls">Promise</span>((res, rej) => {
+  child.<span class="kw">on</span>(<span class="str">'close'</span>, res);
+  child.<span class="kw">on</span>(<span class="str">'error'</span>, rej);
+});
+<span class="kw">if</span> (code !== <span class="num">0</span>) <span class="kw">throw new</span> <span class="cls">Error</span>(`ffmpeg exited ${code}`);
+
+<span class="cm">// fork() IPC for offloading computation</span>
+<span class="kw">const</span> worker = <span class="fn">fork</span>(<span class="str">'./compute.js'</span>);
+worker.<span class="fn">send</span>({ job: <span class="str">'hash'</span>, data: largePayload });
+<span class="kw">const</span> [result] = <span class="kw">await</span> <span class="fn">once</span>(worker, <span class="str">'message'</span>);
+
+<span class="cm">// Timeout + cleanup</span>
+<span class="kw">const</span> ac = <span class="kw">new</span> <span class="cls">AbortController</span>();
+<span class="fn">setTimeout</span>(() => ac.<span class="fn">abort</span>(), <span class="num">30_000</span>);
+<span class="fn">spawn</span>(<span class="str">'slow-task'</span>, [], { signal: ac.signal, killSignal: <span class="str">'SIGTERM'</span> });</code></pre>
+</section>
+
+<!-- ─────────────────── 10 WORKER THREADS ─────────────────── -->
+<section class="section" id="worker">
+  <div class="sec-header">
+    <span class="sec-num">10</span>
+    <h2 class="sec-title">Worker Threads</h2>
+    <span class="sec-badge b-perf">Performance</span>
+  </div>
+
+  <div class="prose">
+    <p>Worker Threads run V8 isolates within the same process. They share memory via <code>SharedArrayBuffer</code> and communicate via structured clone. Unlike <code>fork()</code>, startup is ~2–5ms vs ~50–100ms, but a crash in a worker can destabilize the process.</p>
+  </div>
+
+  <pre data-lang="js"><code><span class="kw">import</span> { Worker, isMainThread, parentPort, workerData, receiveMessageOnPort, MessageChannel } <span class="kw">from</span> <span class="str">'worker_threads'</span>;
+
+<span class="kw">if</span> (isMainThread) {
+  <span class="cm">// ── Main thread ──────────────────────────────────────────</span>
+  <span class="kw">const</span> { port1, port2 } = <span class="kw">new</span> <span class="cls">MessageChannel</span>();
+  <span class="kw">const</span> worker = <span class="kw">new</span> <span class="cls">Worker</span>(<span class="kw">new</span> <span class="cls">URL</span>(<span class="kw">import</span>.meta.url), {
+    workerData: { concurrency: <span class="num">4</span> },
+    transferList: [port2]   <span class="cm">// zero-copy port transfer</span>
+  });
+
+  worker.<span class="fn">postMessage</span>({ input: bigArray }, [bigArray.buffer]); <span class="cm">// transfer ownership</span>
+  worker.<span class="kw">on</span>(<span class="str">'message'</span>, result => <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">'done'</span>, result));
+  worker.<span class="kw">on</span>(<span class="str">'error'</span>, err  => <span class="fn">console</span>.<span class="fn">error</span>(err));
+  worker.<span class="kw">on</span>(<span class="str">'exit'</span>,  code => <span class="kw">if</span> (code) <span class="fn">respawn</span>());
+
+} <span class="kw">else</span> {
+  <span class="cm">// ── Worker thread ────────────────────────────────────────</span>
+  parentPort.<span class="kw">on</span>(<span class="str">'message'</span>, ({ input }) => {
+    <span class="kw">const</span> result = <span class="fn">heavyCPUWork</span>(input); <span class="cm">// won't block main thread</span>
+    parentPort.<span class="fn">postMessage</span>(result);
+  });
+}
+
+<span class="cm">// SharedArrayBuffer + Atomics for low-latency sync</span>
+<span class="kw">const</span> sab  = <span class="kw">new</span> <span class="cls">SharedArrayBuffer</span>(<span class="num">4</span>);
+<span class="kw">const</span> lock = <span class="kw">new</span> <span class="cls">Int32Array</span>(sab);
+<span class="cm">// Worker: Atomics.wait(lock, 0, 0) — blocks until notified</span>
+<span class="cm">// Main:   Atomics.notify(lock, 0, 1) — wake one worker</span>
+<span class="cm">// Both:   Atomics.add(lock, 0, 1)    — atomic increment</span></code></pre>
+
+  <div class="callout tip">
+    <div class="callout-label">💡 Use a worker pool</div>
+    <p>Creating a Worker per request is expensive (~5ms startup). Use a pool of N workers and round-robin or queue work to them. <strong>piscina</strong> is the battle-tested library for this, or implement with <code>MessageChannel</code> per request.</p>
+  </div>
+</section>
+
+<!-- ─────────────────── 11 CLUSTER ─────────────────── -->
+<section class="section" id="cluster">
+  <div class="sec-header">
+    <span class="sec-num">11</span>
+    <h2 class="sec-title">Cluster</h2>
+    <span class="sec-badge b-perf">Performance</span>
+  </div>
+
+  <pre data-lang="js"><code><span class="kw">import</span> cluster <span class="kw">from</span> <span class="str">'cluster'</span>;
+<span class="kw">import</span> os <span class="kw">from</span> <span class="str">'os'</span>;
+
+<span class="kw">if</span> (cluster.isPrimary) {
+  <span class="kw">const</span> numCPUs = os.<span class="fn">availableParallelism</span>(); <span class="cm">// Node 19+ (better than os.cpus().length)</span>
+  <span class="fn">console</span>.<span class="fn">log</span>(`Primary ${process.pid}: forking ${numCPUs} workers`);
+
+  <span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i < numCPUs; i++) cluster.<span class="fn">fork</span>();
+
+  <span class="cm">// Auto-restart dead workers</span>
+  cluster.<span class="kw">on</span>(<span class="str">'exit'</span>, (worker, code, signal) => {
+    <span class="fn">console</span>.<span class="fn">error</span>(`Worker ${worker.id} died (${signal || code}), restarting`);
+    cluster.<span class="fn">fork</span>();
+  });
+
+  <span class="cm">// Zero-downtime rolling restart on SIGUSR2</span>
+  process.<span class="kw">on</span>(<span class="str">'SIGUSR2'</span>, () => {
+    <span class="kw">const</span> workers = <span class="cls">Object</span>.<span class="fn">values</span>(cluster.workers);
+    <span class="kw">let</span> i = <span class="num">0</span>;
+    <span class="kw">const</span> restartNext = () => {
+      <span class="kw">if</span> (i >= workers.length) <span class="kw">return</span>;
+      workers[i++].<span class="fn">kill</span>(<span class="str">'SIGTERM'</span>);
+    };
+    cluster.<span class="kw">on</span>(<span class="str">'listening'</span>, restartNext); <span class="cm">// restart next when new worker is ready</span>
+    <span class="fn">restartNext</span>();
+  });
+
+} <span class="kw">else</span> {
+  <span class="fn">console</span>.<span class="fn">log</span>(`Worker ${process.pid} started`);
+  <span class="kw">await</span> <span class="fn">startHTTPServer</span>(); <span class="cm">// same code runs in all workers</span>
+}</code></pre>
+
+  <div class="callout info">
+    <div class="callout-label">ℹ Cluster vs PM2 vs Kubernetes</div>
+    <p>Cluster is great for single-host scale-up. PM2 wraps cluster with process management, logs, and restart policies. In Kubernetes, let the orchestrator handle replication and health — run single-process Node per container.</p>
+  </div>
+</section>
+
+<!-- ─────────────────── 12 ERRORS ─────────────────── -->
+<section class="section" id="errors">
+  <div class="sec-header">
+    <span class="sec-num">12</span>
+    <h2 class="sec-title">Error Handling</h2>
+    <span class="sec-badge b-sys">System</span>
+  </div>
+
+  <pre data-lang="js"><code><span class="cm">// ── Custom error with code (Node convention) ─────────────</span>
+<span class="kw">class</span> <span class="cls">AppError</span> <span class="kw">extends</span> <span class="cls">Error</span> {
+  <span class="fn">constructor</span>(message, code, statusCode = <span class="num">500</span>, details = {}) {
+    <span class="kw">super</span>(message);
+    <span class="kw">this</span>.name        = <span class="kw">this</span>.constructor.name;
+    <span class="kw">this</span>.code        = code;        <span class="cm">// e.g. 'ERR_VALIDATION'</span>
+    <span class="kw">this</span>.statusCode  = statusCode;
+    <span class="kw">this</span>.details     = details;
+    <span class="kw">this</span>.isOperational = <span class="kw">true</span>;     <span class="cm">// vs programming errors</span>
+    <span class="cls">Error</span>.<span class="fn">captureStackTrace</span>(<span class="kw">this</span>, <span class="kw">this</span>.constructor);
+  }
+}
+
+<span class="cm">// ── Error.cause chain (Node 16.9+ / ES2022) ──────────────</span>
+<span class="kw">try</span> {
+  <span class="kw">await</span> db.<span class="fn">query</span>(sql);
+} <span class="kw">catch</span> (err) {
+  <span class="kw">throw new</span> <span class="cls">AppError</span>(<span class="str">'Query failed'</span>, <span class="str">'ERR_DB'</span>, <span class="num">503</span>, { cause: err });
+}
+
+<span class="cm">// ── Process-level safety nets ─────────────────────────────</span>
+process.<span class="kw">on</span>(<span class="str">'uncaughtException'</span>, (err, origin) => {
+  logger.<span class="fn">fatal</span>({ err, origin }, <span class="str">'uncaughtException'</span>);
+  process.<span class="fn">exit</span>(<span class="num">1</span>); <span class="cm">// MUST exit — heap state is undefined</span>
+});
+process.<span class="kw">on</span>(<span class="str">'unhandledRejection'</span>, (reason, promise) => {
+  logger.<span class="fn">error</span>({ reason, promise }, <span class="str">'unhandledRejection'</span>);
+  <span class="cm">// Node 15+: process will exit with code 1 automatically</span>
+});
+
+<span class="cm">// ── Graceful shutdown ─────────────────────────────────────</span>
+<span class="kw">async function</span> <span class="fn">shutdown</span>(signal) {
+  <span class="fn">console</span>.<span class="fn">log</span>(`Received ${signal}, shutting down…`);
+  <span class="cm">// 1. Stop accepting new connections</span>
+  server.<span class="fn">close</span>();
+  <span class="cm">// 2. Drain in-flight requests (wait max 10s)</span>
+  <span class="kw">const</span> timer = <span class="fn">setTimeout</span>(() => process.<span class="fn">exit</span>(<span class="num">1</span>), <span class="num">10_000</span>).<span class="fn">unref</span>();
+  <span class="cm">// 3. Close DB connections, flush logs</span>
+  <span class="kw">await</span> <span class="cls">Promise</span>.<span class="fn">allSettled</span>([db.<span class="fn">end</span>(), redis.<span class="fn">quit</span>(), logger.<span class="fn">flush</span>()]);
+  clearTimeout(timer);
+  process.<span class="fn">exit</span>(<span class="num">0</span>);
+}
+[<span class="str">'SIGTERM'</span>, <span class="str">'SIGINT'</span>, <span class="str">'SIGHUP'</span>].<span class="fn">forEach</span>(s => process.<span class="kw">on</span>(s, shutdown));</code></pre>
+
+  <div class="callout danger">
+    <div class="callout-label">🔴 Never silently swallow errors</div>
+    <p><code>catch(() => {})</code> hides real bugs. At minimum, log every caught error. In Node 15+, unhandled Promise rejections crash the process — intentional. In Node 22, <code>--disable-warning=ExperimentalWarning</code> is available.</p>
+  </div>
+</section>
+
+<!-- ─────────────────── 13 CRYPTO ─────────────────── -->
+<section class="section" id="crypto">
+  <div class="sec-header">
+    <span class="sec-num">13</span>
+    <h2 class="sec-title">Crypto</h2>
+    <span class="sec-badge b-api">API</span>
+  </div>
+
+  <pre data-lang="js"><code><span class="kw">import</span> {
+  randomBytes, randomUUID, randomInt,
+  createHash, createHmac,
+  scrypt, scryptSync,
+  createCipheriv, createDecipheriv,
+  generateKeyPairSync, createSign, createVerify,
+  timingSafeEqual
+} <span class="kw">from</span> <span class="str">'crypto'</span>;
+
+<span class="cm">// ── Randomness ────────────────────────────────────────────</span>
+<span class="kw">const</span> token  = <span class="fn">randomBytes</span>(<span class="num">32</span>).<span class="fn">toString</span>(<span class="str">'hex'</span>);  <span class="cm">// 64-char hex token</span>
+<span class="kw">const</span> id     = <span class="fn">randomUUID</span>();                       <span class="cm">// RFC 4122 v4</span>
+<span class="kw">const</span> otp    = <span class="fn">randomInt</span>(<span class="num">100000</span>, <span class="num">999999</span>);         <span class="cm">// cryptographically secure int</span>
+
+<span class="cm">// ── Hashing ──────────────────────────────────────────────</span>
+<span class="kw">const</span> sha256 = <span class="fn">createHash</span>(<span class="str">'sha256'</span>).<span class="fn">update</span>(data).<span class="fn">update</span>(more).<span class="fn">digest</span>(<span class="str">'hex'</span>);
+
+<span class="cm">// ── HMAC (webhook verification, API signatures) ──────────</span>
+<span class="kw">const</span> sig = <span class="fn">createHmac</span>(<span class="str">'sha256'</span>, secret).<span class="fn">update</span>(body).<span class="fn">digest</span>(<span class="str">'hex'</span>);
+<span class="kw">const</span> isValid = <span class="fn">timingSafeEqual</span>(<span class="cls">Buffer</span>.<span class="fn">from</span>(sig), <span class="cls">Buffer</span>.<span class="fn">from</span>(incoming));
+
+<span class="cm">// ── Password hashing — scrypt (prefer over bcrypt in Node) </span>
+<span class="kw">const</span> salt   = <span class="fn">randomBytes</span>(<span class="num">16</span>);
+<span class="kw">const</span> hash   = <span class="kw">await new</span> <span class="cls">Promise</span>((res, rej) =>
+  <span class="fn">scrypt</span>(password, salt, <span class="num">64</span>, { N: <span class="num">16384</span>, r: <span class="num">8</span>, p: <span class="num">1</span> },
+    (err, h) => err ? <span class="fn">rej</span>(err) : <span class="fn">res</span>(h))
+);
+<span class="kw">const</span> stored = `${salt.<span class="fn">toString</span>(<span class="str">'hex'</span>)}:${hash.<span class="fn">toString</span>(<span class="str">'hex'</span>)}`;
+
+<span class="cm">// ── AES-256-GCM (authenticated encryption) ───────────────</span>
+<span class="kw">const</span> iv       = <span class="fn">randomBytes</span>(<span class="num">12</span>);  <span class="cm">// 96-bit IV for GCM</span>
+<span class="kw">const</span> cipher   = <span class="fn">createCipheriv</span>(<span class="str">'aes-256-gcm'</span>, key32, iv);
+<span class="kw">const</span> encrypted= <span class="cls">Buffer</span>.<span class="fn">concat</span>([cipher.<span class="fn">update</span>(plain), cipher.<span class="fn">final</span>()]);
+<span class="kw">const</span> authTag  = cipher.<span class="fn">getAuthTag</span>(); <span class="cm">// 16 bytes — must store with ciphertext</span>
+
+<span class="cm">// ── RSA key pair + sign / verify ─────────────────────────</span>
+<span class="kw">const</span> { privateKey, publicKey } = <span class="fn">generateKeyPairSync</span>(<span class="str">'rsa'</span>, {
+  modulusLength: <span class="num">4096</span>,
+  publicKeyEncoding:  { type: <span class="str">'spki'</span>,  format: <span class="str">'pem'</span> },
+  privateKeyEncoding: { type: <span class="str">'pkcs8'</span>, format: <span class="str">'pem'</span> }
+});
+<span class="kw">const</span> signature = <span class="fn">createSign</span>(<span class="str">'SHA256'</span>).<span class="fn">update</span>(data).<span class="fn">sign</span>(privateKey, <span class="str">'hex'</span>);
+<span class="kw">const</span> valid = <span class="fn">createVerify</span>(<span class="str">'SHA256'</span>).<span class="fn">update</span>(data).<span class="fn">verify</span>(publicKey, signature, <span class="str">'hex'</span>);</code></pre>
+</section>
+
+<!-- ─────────────────── 14 DIAGNOSTICS ─────────────────── -->
+<section class="section" id="diagnostics">
+  <div class="sec-header">
+    <span class="sec-num">14</span>
+    <h2 class="sec-title">Diagnostics &amp; Performance</h2>
+    <span class="sec-badge b-perf">Performance</span>
+  </div>
+
+  <pre data-lang="js"><code><span class="cm">// ── Timing — high-resolution ──────────────────────────────</span>
+<span class="kw">import</span> { performance, PerformanceObserver } <span class="kw">from</span> <span class="str">'perf_hooks'</span>;
+performance.<span class="fn">mark</span>(<span class="str">'t0'</span>);
+<span class="kw">await</span> <span class="fn">work</span>();
+performance.<span class="fn">mark</span>(<span class="str">'t1'</span>);
+performance.<span class="fn">measure</span>(<span class="str">'work'</span>, <span class="str">'t0'</span>, <span class="str">'t1'</span>);
+<span class="fn">console</span>.<span class="fn">log</span>(performance.<span class="fn">getEntriesByName</span>(<span class="str">'work'</span>)[<span class="num">0</span>].duration);
+
+<span class="cm">// ── Memory usage ──────────────────────────────────────────</span>
+<span class="kw">const</span> { rss, heapUsed, heapTotal, external, arrayBuffers } = process.<span class="fn">memoryUsage</span>();
+<span class="cm">// rss = Resident Set Size (total process memory)
+// external = C++ objects bound to JS objects (Buffers count here)</span>
+
+<span class="cm">// ── Heap snapshot (open in Chrome DevTools Memory tab) ───</span>
+<span class="kw">import</span> v8 <span class="kw">from</span> <span class="str">'v8'</span>;
+process.<span class="kw">on</span>(<span class="str">'SIGUSR1'</span>, () => {
+  <span class="kw">const</span> file = v8.<span class="fn">writeHeapSnapshot</span>();
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">'Heap snapshot:'</span>, file);
+});
+
+<span class="cm">// ── AsyncLocalStorage (request context, no prop drilling) ─</span>
+<span class="kw">import</span> { AsyncLocalStorage } <span class="kw">from</span> <span class="str">'async_hooks'</span>;
+<span class="kw">export const</span> ctx = <span class="kw">new</span> <span class="cls">AsyncLocalStorage</span>();
+
+app.<span class="fn">use</span>((req, res, next) =>
+  ctx.<span class="fn">run</span>({ reqId: req.headers[<span class="str">'x-request-id'</span>], userId: req.user?.id }, next)
+);
+<span class="cm">// Anywhere downstream — no threading, correct async context</span>
+logger.<span class="fn">info</span>(ctx.<span class="fn">getStore</span>(), <span class="str">'processing request'</span>);
+
+<span class="cm">// ── Event loop lag monitoring (production) ────────────────</span>
+<span class="kw">let</span> lastTick = Date.<span class="fn">now</span>();
+<span class="kw">const</span> checkLag = () => {
+  <span class="kw">const</span> lag = Date.<span class="fn">now</span>() - lastTick - <span class="num">1000</span>;
+  <span class="kw">if</span> (lag > <span class="num">100</span>) metrics.<span class="fn">record</span>(<span class="str">'event_loop_lag_ms'</span>, lag);
+  lastTick = Date.<span class="fn">now</span>();
+  <span class="fn">setTimeout</span>(checkLag, <span class="num">1000</span>).<span class="fn">unref</span>();
+};
+<span class="fn">checkLag</span>();</code></pre>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>Tool / Flag</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>--inspect[=port]</td><td>Attach Chrome DevTools for live debugging</td></tr>
+      <tr><td>--inspect-brk</td><td>Break on first line — debug startup issues</td></tr>
+      <tr><td>--prof + --prof-process</td><td>V8 tick profiler → flamegraph</td></tr>
+      <tr><td>clinic flame</td><td>One-command CPU flamegraph (clinic.js)</td></tr>
+      <tr><td>0x</td><td>Minimal dependency flamegraph</td></tr>
+      <tr><td>clinic bubbleprof</td><td>Visualise async I/O bottlenecks</td></tr>
+      <tr><td>--heap-prof</td><td>Sampling heap profiler (Node 12+)</td></tr>
+      <tr><td>--cpu-prof</td><td>V8 CPU profiler (Node 12+)</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ─────────────────── 15 SECURITY ─────────────────── -->
+<section class="section" id="security">
+  <div class="sec-header">
+    <span class="sec-num">15</span>
+    <h2 class="sec-title">Security</h2>
+    <span class="sec-badge b-sys">System</span>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">🔐</div>
+      <div class="card-title">Permission Model (Node 20+)</div>
+      <p>Run with <code>--experimental-permission</code> to restrict FS read/write, network, child process access at OS level. Granular <code>--allow-fs-read=/app</code>.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">☠️</div>
+      <div class="card-title">Prototype Pollution</div>
+      <p>Never <code>Object.assign(target, userInput)</code>. Use <code>Object.create(null)</code> for hash maps. Validate with <code>json-schema</code> before merging. Check <code>__proto__</code>, <code>constructor</code>, <code>prototype</code> keys.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">⏱️</div>
+      <div class="card-title">ReDoS</div>
+      <p>Catastrophic backtracking on user-controlled regex stalls the event loop. Test with <code>safe-regex</code>. Use <code>RE2</code> (linear time) for untrusted input. Set a timeout with <code>vm.runInContext</code>.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔗</div>
+      <div class="card-title">Supply Chain</div>
+      <p><code>npm audit --audit-level=high</code> in CI. Use <code>--ignore-scripts</code> for untrusted installs. Lock with <code>package-lock.json</code>. Consider <code>socket.dev</code> for deep analysis.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">💉</div>
+      <div class="card-title">Command Injection</div>
+      <p>Never interpolate user data into shell strings. Always use <code>execFile(binary, argsArray)</code>. Validate and sanitize file paths — prevent path traversal with <code>path.resolve()</code> + prefix check.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌊</div>
+      <div class="card-title">Resource Exhaustion</div>
+      <p>Set request body size limits. Rate-limit per IP. Use <code>timeout</code> on all external calls. Set <code>server.maxHeadersCount</code>, <code>server.headersTimeout</code>, <code>server.requestTimeout</code>.</p>
+    </div>
+  </div>
+
+  <pre data-lang="js"><code><span class="cm">// Permission model</span>
+<span class="cm">// node --experimental-permission --allow-fs-read=/app/data --allow-net=api.stripe.com:443 server.js</span>
+
+<span class="cm">// Native .env (Node 20.6+) — no dotenv needed</span>
+<span class="cm">// node --env-file=.env --env-file=.env.local server.js</span>
+
+<span class="cm">// Validate env at startup — fail fast, fail loud</span>
+<span class="kw">const</span> REQUIRED = [<span class="str">'DATABASE_URL'</span>, <span class="str">'JWT_SECRET'</span>, <span class="str">'PORT'</span>, <span class="str">'REDIS_URL'</span>];
+<span class="kw">const</span> missing  = REQUIRED.<span class="fn">filter</span>(k => !process.env[k]);
+<span class="kw">if</span> (missing.length) <span class="kw">throw new</span> <span class="cls">Error</span>(`Missing env vars: ${missing.<span class="fn">join</span>(<span class="str">', '</span>)}`);
+
+<span class="cm">// Path traversal prevention</span>
+<span class="kw">import</span> path <span class="kw">from</span> <span class="str">'path'</span>;
+<span class="kw">const</span> BASE     = <span class="str">'/app/uploads'</span>;
+<span class="kw">const</span> resolved = path.<span class="fn">resolve</span>(BASE, userFilename);
+<span class="kw">if</span> (!resolved.<span class="fn">startsWith</span>(BASE + path.sep)) <span class="kw">throw new</span> <span class="cls">Error</span>(<span class="str">'Path traversal!'</span>);
+
+<span class="cm">// HTTP security headers (manual, or use helmet)</span>
+res.<span class="fn">setHeader</span>(<span class="str">'X-Content-Type-Options'</span>, <span class="str">'nosniff'</span>);
+res.<span class="fn">setHeader</span>(<span class="str">'X-Frame-Options'</span>, <span class="str">'DENY'</span>);
+res.<span class="fn">setHeader</span>(<span class="str">'Content-Security-Policy'</span>, <span class="str">"default-src 'self'"</span>);
+res.<span class="fn">setHeader</span>(<span class="str">'Strict-Transport-Security'</span>, <span class="str">'max-age=31536000; includeSubDomains'</span>);</code></pre>
+
+  <div class="section-wm">Sarita Gomi · Node.js Reference 2025</div>
+</section>
+
+<!-- ─────────────────── 16 V8 & MEMORY ─────────────────── -->
+<section class="section" id="v8">
+  <div class="sec-header">
+    <span class="sec-num">16</span>
+    <h2 class="sec-title">V8 &amp; Memory Internals</h2>
+    <span class="sec-badge b-perf">Performance</span>
+  </div>
+
+  <div class="prose">
+    <p>V8 uses generational garbage collection. Objects start in <strong>Young Generation</strong> (Scavenge GC, very fast) and promoted to <strong>Old Generation</strong> (Mark-Sweep/Mark-Compact, expensive) if they survive 2 GC cycles.</p>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">🌱</div>
+      <div class="card-title">Young Generation</div>
+      <p>~1–8MB. Two semi-spaces. Scavenge is ~1ms. Short-lived objects die here. Goal: keep most objects young.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌳</div>
+      <div class="card-title">Old Generation</div>
+      <p>Default max ~1.4GB (64-bit). Mark-Sweep can take 10–100ms+. Promoted objects that survive scavenge.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📌</div>
+      <div class="card-title">Large Object Space</div>
+      <p>Objects &gt;512KB go here, never moved. Avoid allocating large objects in hot paths.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🧩</div>
+      <div class="card-title">Code Space</div>
+      <p>Compiled JIT code lives here. V8 JITs hot functions. Megamorphic call sites (many object shapes) de-optimize.</p>
+    </div>
+  </div>
+
+  <pre data-lang="js"><code><span class="cm">// ── Tune heap size ─────────────────────────────────────────</span>
+<span class="cm">// node --max-old-space-size=4096 server.js   (4GB old gen)</span>
+<span class="cm">// node --max-semi-space-size=64  server.js   (64MB young gen)</span>
+
+<span class="cm">// ── V8 flags useful in prod ───────────────────────────────</span>
+<span class="kw">import</span> v8 <span class="kw">from</span> <span class="str">'v8'</span>;
+v8.<span class="fn">setFlagsFromString</span>(<span class="str">'--expose-gc'</span>); <span class="cm">// enable global.gc() for testing</span>
+
+<span class="cm">// ── Heap stats ────────────────────────────────────────────</span>
+<span class="kw">const</span> stats = v8.<span class="fn">getHeapStatistics</span>();
+<span class="cm">// { total_heap_size, used_heap_size, heap_size_limit, malloced_memory, ... }</span>
+
+<span class="cm">// ── Common memory leak patterns ───────────────────────────</span>
+<span class="cm">// 1. Closures holding large objects after use</span>
+<span class="cm">// 2. Event listeners not removed (call .off() or .once())</span>
+<span class="cm">// 3. Caches without TTL or size limit (use lru-cache)</span>
+<span class="cm">// 4. Global arrays/maps that grow forever</span>
+<span class="cm">// 5. setInterval callbacks referencing large scope</span>
+
+<span class="cm">// ── WeakRef / FinalizationRegistry (Node 14+) ────────────</span>
+<span class="kw">const</span> cache = <span class="kw">new</span> <span class="cls">Map</span>();
+<span class="kw">const</span> weak  = <span class="kw">new</span> <span class="cls">WeakRef</span>(largeObject);
+<span class="kw">const</span> registry = <span class="kw">new</span> <span class="cls">FinalizationRegistry</span>(key => cache.<span class="fn">delete</span>(key));
+registry.<span class="fn">register</span>(largeObject, <span class="str">'myKey'</span>);
+<span class="cm">// largeObject can now be GC'd; cache entry auto-cleaned</span></code></pre>
+</section>
+
+<!-- ─────────────────── 17 NEW FEATURES ─────────────────── -->
+<section class="section" id="newfeatures">
+  <div class="sec-header">
+    <span class="sec-num">17</span>
+    <h2 class="sec-title">Node 20–23 Key Features</h2>
+    <span class="sec-badge b-new">New</span>
+  </div>
+
+  <div class="card-grid-3">
+    <div class="card">
+      <div class="card-icon">🧪</div>
+      <div class="card-title">Native Test Runner</div>
+      <p>Node 18+ — <code>import { test, describe, mock } from 'node:test'</code>. No Jest/Mocha needed for many projects.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌐</div>
+      <div class="card-title">Native Fetch &amp; WebSocket</div>
+      <p>Fetch stable in Node 21. <code>WebSocket</code> global added in Node 22 — no ws package needed for clients.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🗃️</div>
+      <div class="card-title">SQLite Built-in</div>
+      <p>Node 22.5+ ships <code>node:sqlite</code> — synchronous, no native compile needed. Zero-dep embedded DB.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📁</div>
+      <div class="card-title">import.meta.dirname</div>
+      <p>Node 21.2+ — <code>import.meta.dirname</code> and <code>import.meta.filename</code> directly. No fileURLToPath dance.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <div class="card-title">Compile Cache</div>
+      <p>Node 22.8+ — <code>--compile-cache=./cache</code>. V8 bytecode cached between runs. Significant cold-start speedup.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎭</div>
+      <div class="card-title">Type Stripping</div>
+      <p>Node 22.6+ — run TypeScript directly with <code>--experimental-strip-types</code>. No build step for simple TS.</p>
+    </div>
+  </div>
+
+  <pre data-lang="js"><code><span class="cm">// ── Native test runner ─────────────────────────────────────</span>
+<span class="kw">import</span> { test, describe, it, mock, before, after } <span class="kw">from</span> <span class="str">'node:test'</span>;
+<span class="kw">import</span> assert <span class="kw">from</span> <span class="str">'node:assert/strict'</span>;
+
+<span class="fn">describe</span>(<span class="str">'UserService'</span>, () => {
+  <span class="kw">const</span> mockDB = mock.<span class="fn">fn</span>(() => <span class="cls">Promise</span>.<span class="fn">resolve</span>({ id: <span class="num">1</span> }));
+  <span class="fn">it</span>(<span class="str">'creates user'</span>, <span class="kw">async</span> t => {
+    t.mock.<span class="fn">method</span>(db, <span class="str">'insert'</span>, mockDB);
+    <span class="kw">const</span> user = <span class="kw">await</span> userService.<span class="fn">create</span>({ name: <span class="str">'Ada'</span> });
+    assert.<span class="fn">equal</span>(user.id, <span class="num">1</span>);
+    assert.<span class="fn">equal</span>(mockDB.<span class="fn">mock</span>.callCount(), <span class="num">1</span>);
+  });
+});
+<span class="cm">// Run: node --test *.test.js</span>
+<span class="cm">// Coverage: node --test --experimental-test-coverage</span>
+
+<span class="cm">// ── SQLite (Node 22.5+) ────────────────────────────────────</span>
+<span class="kw">import</span> { DatabaseSync } <span class="kw">from</span> <span class="str">'node:sqlite'</span>;
+<span class="kw">const</span> db = <span class="kw">new</span> <span class="cls">DatabaseSync</span>(<span class="str">':memory:'</span>);
+db.<span class="fn">exec</span>(<span class="str">'CREATE TABLE kv (key TEXT, value TEXT)'</span>);
+db.<span class="fn">prepare</span>(<span class="str">'INSERT INTO kv VALUES (?, ?)'</span>).<span class="fn">run</span>(<span class="str">'foo'</span>, <span class="str">'bar'</span>);
+<span class="kw">const</span> row = db.<span class="fn">prepare</span>(<span class="str">'SELECT value FROM kv WHERE key = ?'</span>).<span class="fn">get</span>(<span class="str">'foo'</span>);
+
+<span class="cm">// ── Type stripping (Node 22.6+) ───────────────────────────</span>
+<span class="cm">// node --experimental-strip-types server.ts</span>
+<span class="cm">// Only removes type annotations — no enum/decorator transform</span></code></pre>
+
+  <div class="callout new">
+    <div class="callout-label">✦ Node 23 highlights</div>
+    <p><strong>require(ESM)</strong> is now unflagged — you can <code>require()</code> synchronous ESM modules directly. <strong>--experimental-transform-types</strong> enables enums and decorators. <strong>WebSocket client</strong> is stable.</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <div style="text-align:center;padding:20px 0 8px;font-family:var(--mono);font-size:12px;color:var(--muted)">
+    © 2025 Sarita Gomi · Node.js Master Reference · All concepts covered with production accuracy
+  </div>
+
+  <div class="section-wm">Sarita Gomi · Node.js Reference 2025</div>
+</section>
+
+</div><!-- /content -->
+</main>
+</div><!-- /layout -->
+
+<script>
+// Intersection observer for section reveal
+const sections = document.querySelectorAll('.section');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.05, rootMargin: '0px 0px -40px 0px' });
+sections.forEach(s => io.observe(s));
+
+// Active nav link
+const links = document.querySelectorAll('.nav a');
+const secIO = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const lnk = document.querySelector(`.nav a[href="#${e.target.id}"]`);
+      if(lnk) lnk.classList.add('active');
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => { if(s.id) secIO.observe(s); });
+
+// Scroll to top button
+const totop = document.getElementById('totop');
+window.addEventListener('scroll', () => {
+  totop.classList.toggle('show', window.scrollY > 600);
+}, { passive: true });
+
+// 3D card tilt effect
+document.querySelectorAll('.card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const r = card.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top)  / r.height - 0.5;
+    card.style.transform = `perspective(600px) rotateX(${-y*6}deg) rotateY(${x*6}deg) translateY(-3px)`;
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = '';
+  });
+});
+</script>
+</body>
+</html>
